@@ -20,7 +20,7 @@ void setup() {
   // 모터 구동
   digitalWrite(IN1_PIN, HIGH);
   digitalWrite(IN2_PIN, LOW);
-  analogWrite(ENA_PIN, 50);
+  analogWrite(ENA_PIN, 150);
 }
 
 void loop() {
