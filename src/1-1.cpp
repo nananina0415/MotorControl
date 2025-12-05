@@ -1,3 +1,7 @@
+// P #1 - 1
+// Calculate & plot angular velocity along time with the encoder reading of an open-loop response 
+// for a sufficient PWM duty step input, d = 200. (Be sure to get a smooth plot.)
+
 #include <Arduino.h>
 #include <Encoder.h> 
 
@@ -20,7 +24,7 @@ void setup() {
   // 모터 구동
   digitalWrite(IN1_PIN, HIGH);
   digitalWrite(IN2_PIN, LOW);
-  analogWrite(ENA_PIN, 150);
+  analogWrite(ENA_PIN, 200);
 }
 
 void loop() {
