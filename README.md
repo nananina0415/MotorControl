@@ -21,14 +21,14 @@ MotorControl/
 ### 0. 빠른 업로드 (자동화 스크립트)
 
 ```bash
-python run.py <n> <m>
+python run.py <n-m>
 ```
 
 예시:
 ```bash
-python run.py 1 1  # code/p1-1.cpp를 업로드
-python run.py 1 2  # code/p1-2.cpp를 업로드
-python run.py 1 3  # code/p1-3.cpp를 업로드
+python run.py 1-1  # code/p1-1.cpp를 업로드
+python run.py 1-2  # code/p1-2.cpp를 업로드
+python run.py 1-3  # code/p1-3.cpp를 업로드
 python run.py stop # code/stop.cpp를 업로드 (모터 정지)
 ```
 
@@ -66,21 +66,21 @@ export COM_MEGA2560=/dev/ttyUSB0
 #### Task 1-1 실행 (d=200, 각속도 측정)
 
 ```bash
-python run.py 1 1
+python run.py 1-1
 ```
 → 자동으로 업로드 후 플로터 실행됨
 
 #### Task 1-2 실행 (자동 듀티 순환, τ 측정)
 
 ```bash
-python run.py 1 2
+python run.py 1-2
 ```
 → 자동으로 업로드 후 플로터 실행됨
 
 #### Task 1-3 실행 (K 파라미터 측정)
 
 ```bash
-python run.py 1 3
+python run.py 1-3
 ```
 → 자동으로 업로드 후 플로터 실행됨
 

@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """
 Arduino Upload Script
-Usage: python run.py <n> <m>
+Usage: python run.py <n-m>
        python run.py stop
-Example: python run.py 1 1     (uploads code/p1-1.cpp)
-         python run.py 1 2     (uploads code/p1-2.cpp)
+Example: python run.py 1-1     (uploads code/p1-1.cpp)
+         python run.py 1-2     (uploads code/p1-2.cpp)
          python run.py stop    (uploads code/stop.cpp)
 """
 
@@ -80,13 +80,13 @@ def find_platformio():
 
 def main():
     if len(sys.argv) < 2:
-        print("Usage: python run.py <n> <m>")
+        print("Usage: python run.py <n-m>")
         print("       python run.py stop")
-        print("Example: python run.py 1 1")
+        print("Example: python run.py 1-1")
         print("         python run.py stop")
         sys.exit(1)
 
-    n = sys.argv[1]
+    arg = sys.argv[1]
 
     # File paths
     script_dir = Path(__file__).parent
@@ -95,15 +95,23 @@ def main():
 
     # Find source file
     # Special case: "stop" command
-    if n.lower() == "stop":
+    if arg.lower() == "stop":
         source_file = code_dir / "stop.cpp"
     else:
-        # Regular command needs 3 arguments
-        if len(sys.argv) != 3:
-            print("Usage: python run.py <n> <m>")
-            print("Example: python run.py 1 1")
+        # Parse n-m format
+        if '-' not in arg:
+            print("Error: Invalid format. Expected 'n-m' (e.g., 1-1)")
+            print("Usage: python run.py <n-m>")
+            print("Example: python run.py 1-1")
             sys.exit(1)
-        m = sys.argv[2]
+
+        parts = arg.split('-')
+        if len(parts) != 2:
+            print("Error: Invalid format. Expected 'n-m' (e.g., 1-1)")
+            print("Usage: python run.py <n-m>")
+            sys.exit(1)
+
+        n, m = parts
         source_file = code_dir / f"p{n}-{m}.cpp"
 
     if not source_file.exists():
@@ -169,7 +177,7 @@ def main():
     print(f"  Removed: {dest_file.name}")
 
     # Skip plotter for stop command
-    if n.lower() == "stop":
+    if arg.lower() == "stop":
         print("\n" + "="*60)
         print("Motor stopped. Exiting without plotter.")
         print("="*60)
