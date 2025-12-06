@@ -65,6 +65,10 @@ void setup() {
 
   // Wait for serial connection
   delay(2000);
+
+  // Send task identifier
+  Serial.println("TASK:1-2");
+
   Serial.println("Starting automatic duty cycle test...");
 
   stateStartTime = millis();

@@ -7,6 +7,10 @@ import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 import os
 import sys
+from datetime import datetime
+from pathlib import Path
+import csv
+import json
 
 # --- Configuration ---
 PORT = os.environ.get('COM_MEGA2560')
@@ -38,6 +42,7 @@ duty_data = []
 tau_labels = []  # Store tau annotations: [(time, tau_value, duty, annotation_object)]
 K_labels = []    # Store K annotations: [(time, K_value, duty, annotation_object)]
 paused = False  # Flag to pause updating
+task_name = None  # Store task identifier (e.g., "1-1", "1-2", "1-3")
 
 # --- Setup plot ---
 fig, ax = plt.subplots(figsize=(12, 6))
@@ -49,6 +54,117 @@ ax.set_ylabel('Angular Velocity (deg/s) / PWM Duty (×10)')
 ax.set_title('Motor Speed Response (Press "c" to clear / "p" to pause)')
 ax.legend(loc='upper left')
 ax.grid(True)
+
+# --- Save functions ---
+def save_plot(save_task):
+    """Save current plot as image"""
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+
+    # Create directory (data/ folder at project root)
+    project_root = Path(__file__).parent.parent
+    data_dir = project_root / "data" / save_task
+    data_dir.mkdir(parents=True, exist_ok=True)
+
+    # Save plot
+    filename = data_dir / f"plot_{timestamp}.png"
+    fig.savefig(filename, dpi=300, bbox_inches='tight')
+    print(f"Plot saved: {filename}")
+
+    return filename
+
+def save_raw_data(save_task, time_vals, velocity_vals, duty_vals):
+    """Save raw measurement data to CSV"""
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+
+    # Create directory
+    project_root = Path(__file__).parent.parent
+    data_dir = project_root / "data" / save_task
+    data_dir.mkdir(parents=True, exist_ok=True)
+
+    filename = data_dir / f"raw_data_{timestamp}.csv"
+
+    with open(filename, 'w', newline='') as f:
+        writer = csv.writer(f)
+        writer.writerow(['Time(s)', 'Velocity(deg/s)', 'Duty'])
+
+        for t, v, d in zip(time_vals, velocity_vals, duty_vals):
+            writer.writerow([t, v, d/10])  # duty is scaled by 10 in plot
+
+    print(f"Raw data saved: {filename}")
+    return filename
+
+def save_calculated_values(save_task, tau_vals, K_vals, time_vals):
+    """Save calculated values (tau, K) to JSON"""
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+
+    # Create directory
+    project_root = Path(__file__).parent.parent
+    data_dir = project_root / "data" / save_task
+    data_dir.mkdir(parents=True, exist_ok=True)
+
+    # Save tau values
+    if tau_vals:
+        tau_data = {
+            'timestamp': timestamp,
+            'task': save_task,
+            'measurements': []
+        }
+
+        for time_val, tau_val, duty, _ in tau_vals:
+            tau_data['measurements'].append({
+                'duty': duty,
+                'time': time_val,
+                'tau': tau_val
+            })
+
+        tau_file = data_dir / f"tau_values_{timestamp}.json"
+        with open(tau_file, 'w') as f:
+            json.dump(tau_data, f, indent=2)
+        print(f"Tau values saved: {tau_file}")
+
+    # Save K values
+    if K_vals:
+        K_data = {
+            'timestamp': timestamp,
+            'task': save_task,
+            'measurements': []
+        }
+
+        for time_val, K_val, duty, _ in K_vals:
+            K_data['measurements'].append({
+                'duty': duty,
+                'time': time_val,
+                'K': K_val
+            })
+
+        K_file = data_dir / f"K_values_{timestamp}.json"
+        with open(K_file, 'w') as f:
+            json.dump(K_data, f, indent=2)
+        print(f"K values saved: {K_file}")
+
+    # Save summary
+    summary = {
+        'timestamp': timestamp,
+        'task': save_task,
+        'tau_average': None,
+        'K_average': None,
+        'data_points': len(time_vals)
+    }
+
+    if tau_vals:
+        tau_values = [tau for _, tau, _, _ in tau_vals]
+        summary['tau_average'] = sum(tau_values) / len(tau_values)
+        summary['tau_std'] = (sum((x - summary['tau_average'])**2 for x in tau_values) / len(tau_values))**0.5
+
+    if K_vals:
+        K_values = [K for _, K, _, _ in K_vals]
+        summary['K_average'] = sum(K_values) / len(K_values)
+        summary['K_std'] = (sum((x - summary['K_average'])**2 for x in K_values) / len(K_values))**0.5
+
+    summary_file = data_dir / f"summary_{timestamp}.json"
+    with open(summary_file, 'w') as f:
+        json.dump(summary, f, indent=2)
+    print(f"Summary saved: {summary_file}")
 
 def on_key(event):
     """Handle keyboard events"""
@@ -70,9 +186,37 @@ def on_key(event):
     elif event.key == 'p':
         if not paused:
             paused = True
-            print("\nPlotter paused. Close window to exit.")
-            ax.set_title('Motor Speed Response - PAUSED (close window to exit)')
-            #ser.close()
+            print("\n=== Plotter paused ===")
+
+            # Determine task name
+            if task_name is None:
+                print("Warning: Task name not detected. Using 'unknown'")
+                save_task = "unknown"
+            else:
+                save_task = task_name
+
+            # Save all data
+            print("\nSaving data...")
+
+            # 1. Save plot image
+            plot_file = save_plot(save_task)
+
+            # 2. Save raw data
+            if time_data:
+                raw_file = save_raw_data(save_task, time_data, velocity_data, duty_data)
+            else:
+                print("No raw data to save")
+
+            # 3. Save calculated values
+            if tau_labels or K_labels:
+                save_calculated_values(save_task, tau_labels, K_labels, time_data)
+            else:
+                print("No calculated values to save")
+
+            print("\n=== All data saved successfully ===")
+            print("Close window to exit.")
+
+            ax.set_title('Motor Speed Response - PAUSED & SAVED (close window to exit)')
         else:
             print("Already paused")
 
@@ -95,8 +239,14 @@ def update_plot(frame):
         try:
             raw_data = ser.readline().decode('utf-8', errors='ignore').strip()
 
+            # Parse task identifier: "TASK:1-1" or "TASK:1-2" or "TASK:1-3"
+            if raw_data.startswith("TASK:"):
+                global task_name
+                task_name = raw_data.split(":")[1]
+                print(f"Task detected: {task_name}")
+
             # Parse data format: "Data:Duty,Time,Velocity"
-            if raw_data.startswith("Data:"):
+            elif raw_data.startswith("Data:"):
                 values = raw_data.split(":")[1].split(",")
                 if len(values) == 3:
                     duty = int(values[0])

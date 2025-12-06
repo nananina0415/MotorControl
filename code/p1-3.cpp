@@ -71,6 +71,10 @@ void setup() {
 
   // Wait for serial connection
   delay(2000);
+
+  // Send task identifier
+  Serial.println("TASK:1-3");
+
   Serial.println("Starting K parameter measurement...");
   Serial.println("(Also measuring Tau for comparison)");
 

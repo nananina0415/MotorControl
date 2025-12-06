@@ -22,6 +22,10 @@ void setup() {
   pinMode(IN2_PIN, OUTPUT);
 
   Serial.begin(115200);
+  delay(2000);
+
+  // Send task identifier
+  Serial.println("TASK:1-1");
 
   // Start with motor off, wait for command
   digitalWrite(IN1_PIN, LOW);

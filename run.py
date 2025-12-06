@@ -199,17 +199,28 @@ def main():
         sys.path.insert(0, src_path)
 
     try:
-        # Import and run plotter
-        print("  → Starting plotter...")
+        # Determine which plotter to use based on task
+        # P#2 tasks use PID plotter, others use standard plotter
+        if arg.startswith('2-'):
+            plotter_name = "plotter_pid"
+            print("  → Starting PID plotter...")
+        else:
+            plotter_name = "plotter"
+            print("  → Starting plotter...")
+
         print("  → Press 'c' to clear data")
-        print("  → Press 'p' to pause (stops data collection)")
+        print("  → Press 'p' to pause & save data")
         print("  → Close plot window to exit\n")
 
-        import plotter
+        # Import appropriate plotter module
+        if plotter_name == "plotter_pid":
+            import plotter_pid
+        else:
+            import plotter
 
     except ImportError as e:
-        print(f"  → Failed to import plotter: {e}")
-        print(f"  → Please check if src/plotter.py exists")
+        print(f"  → Failed to import {plotter_name}: {e}")
+        print(f"  → Please check if src/{plotter_name}.py exists")
         sys.exit(1)
     except KeyboardInterrupt:
         print("\n\nPlotter stopped by user")
