@@ -82,8 +82,9 @@ def main():
     if len(sys.argv) < 2:
         print("Usage: python run.py <n-m>")
         print("       python run.py stop")
+        print("       python run.py kp    (Kp Tuning Automation)")
+        print("       python run.py kd    (Kd Tuning Automation)")
         print("Example: python run.py 1-1")
-        print("         python run.py stop")
         sys.exit(1)
 
     arg = sys.argv[1]
@@ -99,6 +100,9 @@ def main():
         source_file = code_dir / "stop.cpp"
     # Special case: "kp" command (Automation)
     elif arg.lower() == "kp":
+        source_file = code_dir / "kp.cpp"
+    # Special case: "kd" command (Automation - uses same firmware)
+    elif arg.lower() == "kd":
         source_file = code_dir / "kp.cpp"
     else:
         # Parse n-m format
