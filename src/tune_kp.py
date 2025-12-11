@@ -1,8 +1,6 @@
-#!/usr/bin/env python3
 import serial
 import time
 import matplotlib.pyplot as plt
-import pandas as pd
 import numpy as np
 import os
 import sys
@@ -141,25 +139,27 @@ def main():
     ax1.legend()
     ax1.grid(True)
     
-    df = pd.DataFrame(results)
-    
     # Plot 2: Rise Time
     ax2 = axes[1]
-    ax2.plot(df['Kp'], df['RiseTime'], 'o-', color='purple')
+    x_vals = [r['Kp'] for r in results]
+    y_vals = [r['RiseTime'] for r in results]
+    ax2.plot(x_vals, y_vals, 'o-', color='purple')
     ax2.set_title('Rise Time (Lower is Faster)')
     ax2.set_ylabel('Time (s)')
     ax2.grid(True)
 
     # Plot 3: Overshoot
     ax3 = axes[2]
-    ax3.plot(df['Kp'], df['Overshoot'], 'o-', color='red')
+    y_vals = [r['Overshoot'] for r in results]
+    ax3.plot(x_vals, y_vals, 'o-', color='red')
     ax3.set_title('Overshoot (Lower is Better)')
     ax3.set_ylabel('Overshoot (%)')
     ax3.grid(True)
 
     # Plot 4: Steady-State Error
     ax4 = axes[3]
-    ax4.plot(df['Kp'], df['SSE'], 'o-', color='green')
+    y_vals = [r['SSE'] for r in results]
+    ax4.plot(x_vals, y_vals, 'o-', color='green')
     ax4.set_title('Steady-State Error (Closer to 0 is Better)')
     ax4.set_xlabel('Kp')
     ax4.set_ylabel('Error (deg)')
