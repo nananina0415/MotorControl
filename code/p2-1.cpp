@@ -24,13 +24,13 @@ const int IN2_PIN = 8;
 Encoder myEncoder(20, 21);
 const float PPR = 374.0;
 
-// PID Gains (Calculated from Traditional Method - Max K Strategy)
-// Based on tau=3.01s, K=6.238 (Max measured value)
-// Design targets: Overshoot < 15%, ts <= 0.5s
-// Note: These gains are very high and will cause saturation.
-float Kp = 521.80;   // Proportional gain
-float Ki = 5216.11;  // Integral gain
-float Kd = 30.91;    // Derivative gain
+// PID Gains (Manual Tuning Step 1: P-only Control)
+// Objective: Increase Kp to improve rise time (speed)
+// Current state: Kp=10.0, Ki=0.0, Kd=0.0
+// Observation: Expect faster rise time but potential overshoot/oscillation
+float Kp = 10.0;     // Proportional gain
+float Ki = 0.0;      // Integral gain
+float Kd = 0.0;      // Derivative gain
 
 // PID Controller state
 float reference = 200.0;      // Target position (degrees)
