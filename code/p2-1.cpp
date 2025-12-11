@@ -185,14 +185,18 @@ void loop() {
 
     // Send data for plotting
     // Modified Format for Verification: 
-    // Data:Time,Position,Reference,Ref+15%,Ref+2%,Ref-2%
+    // Data:Time,Position,Reference,Error,ControlSignal,Ref+15%,Ref+2%,Ref-2%
     Serial.print("Data:");
     Serial.print(currentTime / 1000.0, 3);
     Serial.print(",");
     Serial.print(position, 2);
     Serial.print(",");
     Serial.print(reference, 2);
-    
+    Serial.print(",");
+    Serial.print(error, 2);
+    Serial.print(",");
+    Serial.print(control_signal, 2);
+
     // Add verification limits to the graph
     float limit_overshoot = reference * 1.15; // +15% overshoot limit
     float limit_settle_upper = reference * 1.02; // +2% settling band

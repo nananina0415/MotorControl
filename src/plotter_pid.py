@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # PID Controller Plotter for P#2-1
-# Reads "Data:Time,Position,Reference,Error,ControlSignal" format from Arduino
+# Reads "Data:Time,Position,Reference,Error,ControlSignal,LimitOv,LimitUp,LimitLow" format from Arduino
 
 import serial
 import matplotlib.pyplot as plt
@@ -41,6 +41,9 @@ position_data = []
 reference_data = []
 error_data = []
 control_data = []
+limit_ov_data = []
+limit_up_data = []
+limit_low_data = []
 paused = False
 task_name = None
 
@@ -51,6 +54,11 @@ fig, axes = plt.subplots(3, 1, figsize=(12, 10))
 ax1 = axes[0]
 line_position, = ax1.plot([], [], 'b-', linewidth=2, label='Position')
 line_reference, = ax1.plot([], [], 'r--', linewidth=1.5, label='Reference')
+# Add lines for limits
+line_limit_ov, = ax1.plot([], [], 'g:', linewidth=1, label='Max Overshoot (15%)')
+line_limit_up, = ax1.plot([], [], 'k:', linewidth=0.5, label='Settling Band (2%)')
+line_limit_low, = ax1.plot([], [], 'k:', linewidth=0.5)
+
 ax1.set_xlabel('Time (s)')
 ax1.set_ylabel('Position (deg)')
 ax1.set_title('PID Position Control (Press "c" to clear / "p" to pause & save)')
@@ -194,6 +202,9 @@ def on_key(event):
         reference_data.clear()
         error_data.clear()
         control_data.clear()
+        limit_ov_data.clear()
+        limit_up_data.clear()
+        limit_low_data.clear()
         print("Data cleared")
 
     elif event.key == 'p':
@@ -244,7 +255,7 @@ def update_plot(frame):
                 ser.readline()
             except:
                 pass
-        return line_position, line_reference, line_error, line_control
+        return line_position, line_reference, line_error, line_control, line_limit_ov, line_limit_up, line_limit_low
 
     # Read all available data
     while ser.in_waiting > 0:
@@ -256,10 +267,12 @@ def update_plot(frame):
                 task_name = raw_data.split(":")[1]
                 print(f"Task detected: {task_name}")
 
-            # Parse data format: "Data:Time,Position,Reference,Error,ControlSignal"
+            # Parse data format
             elif raw_data.startswith("Data:"):
                 values = raw_data.split(":")[1].split(",")
-                if len(values) == 5:
+                
+                # Check for standard 5 values or new 8 values format
+                if len(values) >= 5:
                     time_val = float(values[0])
                     position = float(values[1])
                     reference = float(values[2])
@@ -271,6 +284,16 @@ def update_plot(frame):
                     reference_data.append(reference)
                     error_data.append(error)
                     control_data.append(control)
+                    
+                    # If we have extra limit data
+                    if len(values) >= 8:
+                        limit_ov_data.append(float(values[5]))
+                        limit_up_data.append(float(values[6]))
+                        limit_low_data.append(float(values[7]))
+                    else:
+                        limit_ov_data.append(reference * 1.15)
+                        limit_up_data.append(reference * 1.02)
+                        limit_low_data.append(reference * 0.98)
 
             else:
                 # Print status messages
@@ -284,6 +307,12 @@ def update_plot(frame):
         # Position plot
         line_position.set_data(time_data, position_data)
         line_reference.set_data(time_data, reference_data)
+        
+        # Update limit lines if data exists
+        if len(limit_ov_data) == len(time_data):
+            line_limit_ov.set_data(time_data, limit_ov_data)
+            line_limit_up.set_data(time_data, limit_up_data)
+            line_limit_low.set_data(time_data, limit_low_data)
 
         ax1.set_xlim(0, max(time_data) + 0.1)
         pos_min = min(min(position_data), min(reference_data)) - 10
@@ -306,7 +335,7 @@ def update_plot(frame):
             ctrl_max = max(control_data) + 10
             ax3.set_ylim(ctrl_min, ctrl_max)
 
-    return line_position, line_reference, line_error, line_control
+    return line_position, line_reference, line_error, line_control, line_limit_ov, line_limit_up, line_limit_low
 
 # --- Animation ---
 ani = FuncAnimation(fig, update_plot, interval=20, blit=False, cache_frame_data=False)
