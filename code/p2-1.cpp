@@ -24,12 +24,13 @@ const int IN2_PIN = 8;
 Encoder myEncoder(20, 21);
 const float PPR = 374.0;
 
-// PID Gains (optimized from Python simulation)
-// From p2-1_pid_simulation.py with tau=3.009s, K=5.233
-// Performance: Overshoot=1.29%, ts=0.519s, ess=-2.58deg
-float Kp = 0.0;   // Proportional gain
-float Ki = 1.663; // Integral gain
-float Kd = 7.117; // Derivative gain
+// PID Gains (Calculated from Traditional Method - Max K Strategy)
+// Based on tau=3.01s, K=6.238 (Max measured value)
+// Design targets: Overshoot < 15%, ts <= 0.5s
+// Note: These gains are very high and will cause saturation.
+float Kp = 521.80;   // Proportional gain
+float Ki = 5216.11;  // Integral gain
+float Kd = 30.91;    // Derivative gain
 
 // PID Controller state
 float reference = 200.0;      // Target position (degrees)
@@ -183,17 +184,26 @@ void loop() {
     }
 
     // Send data for plotting
-    // Format: Data:Time,Position,Reference,Error,ControlSignal
+    // Modified Format for Verification: 
+    // Data:Time,Position,Reference,Ref+15%,Ref+2%,Ref-2%
     Serial.print("Data:");
     Serial.print(currentTime / 1000.0, 3);
     Serial.print(",");
     Serial.print(position, 2);
     Serial.print(",");
     Serial.print(reference, 2);
+    
+    // Add verification limits to the graph
+    float limit_overshoot = reference * 1.15; // +15% overshoot limit
+    float limit_settle_upper = reference * 1.02; // +2% settling band
+    float limit_settle_lower = reference * 0.98; // -2% settling band
+    
     Serial.print(",");
-    Serial.print(error, 2);
+    Serial.print(limit_overshoot, 2);
     Serial.print(",");
-    Serial.println(control_signal, 2);
+    Serial.print(limit_settle_upper, 2);
+    Serial.print(",");
+    Serial.println(limit_settle_lower, 2);
 
     // Update previous error
     error_prev = error;
