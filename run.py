@@ -206,6 +206,28 @@ def main():
             print(f"Error running automation: {e}")
         return
 
+    # Automation script for KD tuning
+    if arg.lower() == "kd":
+        print("\n" + "="*60)
+        print("Launching KD Tuning Automation...")
+        print("="*60)
+        # We reuse kp.cpp firmware as it supports G command
+        print("Note: Ensuring kp.cpp firmware is used.")
+        print("If you haven't run 'python run.py kp' first, please do so to upload the firmware.")
+        print("waiting for reset...")
+        time.sleep(3)
+        
+        src_path = str(script_dir / "src")
+        if src_path not in sys.path:
+            sys.path.insert(0, src_path)
+            
+        try:
+            import tune_kd
+            tune_kd.main()
+        except Exception as e:
+            print(f"Error running automation: {e}")
+        return
+
     # Launch plotter
     print("\n" + "="*60)
     print("Launching plotter...")
