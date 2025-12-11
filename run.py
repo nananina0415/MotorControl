@@ -97,6 +97,9 @@ def main():
     # Special case: "stop" command
     if arg.lower() == "stop":
         source_file = code_dir / "stop.cpp"
+    # Special case: "kp" command (Automation)
+    elif arg.lower() == "kp":
+        source_file = code_dir / "kp.cpp"
     else:
         # Parse n-m format
         if '-' not in arg:
@@ -182,6 +185,25 @@ def main():
         print("Motor stopped. Exiting without plotter.")
         print("="*60)
         print("\nDone!")
+        return
+
+    # Automation script for KP tuning
+    if arg.lower() == "kp":
+        print("\n" + "="*60)
+        print("Launching KP Tuning Automation...")
+        print("="*60)
+        print("waiting for reset...")
+        time.sleep(3)
+        
+        src_path = str(script_dir / "src")
+        if src_path not in sys.path:
+            sys.path.insert(0, src_path)
+            
+        try:
+            import tune_kp
+            tune_kp.main()
+        except Exception as e:
+            print(f"Error running automation: {e}")
         return
 
     # Launch plotter

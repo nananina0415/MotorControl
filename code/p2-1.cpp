@@ -127,21 +127,13 @@ void loop() {
     long encoderCount = myEncoder.read();
     float rawAngle = (encoderCount / PPR) * 360.0;
 
-    // Convert to 0-360 range
-    position = fmod(rawAngle, 360.0);
-    if (position < 0) {
-      position += 360.0;
-    }
+    // Use raw angle for linear control (no 0-360 switching)
+    position = rawAngle;
 
     // Calculate error
     error = reference - position;
 
-    // Handle wraparound for shortest path
-    if (error > 180) {
-      error -= 360;
-    } else if (error < -180) {
-      error += 360;
-    }
+    // (Shortest path logic removed for uni-directional step response)
 
     // Proportional term
     float P = Kp * error;
