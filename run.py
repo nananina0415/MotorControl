@@ -13,6 +13,7 @@ import os
 import shutil
 import subprocess
 import time
+import serial
 from pathlib import Path
 
 try:
@@ -104,6 +105,9 @@ def main():
     # Special case: "kd" command (Automation - uses same firmware)
     elif arg.lower() == "kd":
         source_file = code_dir / "kp.cpp"
+    # Special case: "test" command (Encoder Debug)
+    elif arg.lower() == "test":
+        source_file = code_dir / "test_encoder.cpp"
     else:
         # Parse n-m format
         if '-' not in arg:
@@ -214,22 +218,64 @@ def main():
     if arg.lower() == "kd":
         print("\n" + "="*60)
         print("Launching KD Tuning Automation...")
-        print("="*60)
-        # We reuse kp.cpp firmware as it supports G command
-        print("Note: Ensuring kp.cpp firmware is used.")
-        print("If you haven't run 'python run.py kp' first, please do so to upload the firmware.")
-        print("waiting for reset...")
-        time.sleep(3)
-        
-        src_path = str(script_dir / "src")
-        if src_path not in sys.path:
-            sys.path.insert(0, src_path)
-            
+        # ... (rest of kd logic) ...
         try:
             import tune_kd
             tune_kd.main()
         except Exception as e:
             print(f"Error running automation: {e}")
+        return
+
+    # Special case: "test" command (Encoder Debug)
+    if arg.lower() == "test":
+        print("\n" + "="*60)
+        print("Launching Encoder Test Monitor...")
+        print("="*60)
+        print("Open Serial Monitor to view output.")
+        print("Press Ctrl+C to exit.")
+        
+        # Get port from env or default
+        port = os.environ.get('COM_MEGA2560', 'COM3')
+        
+        try:
+            ser = serial.Serial(port, 115200, timeout=1)
+            time.sleep(2) # Wait for reset
+            while True:
+                if ser.in_waiting:
+                    line = ser.readline().decode('utf-8', errors='replace').strip()
+                    if line:
+                        print(line)
+        except KeyboardInterrupt:
+            print("\nExiting...")
+        except Exception as e:
+            print(f"Serial Error: {e}")
+            print("Make sure to install pyserial: pip install pyserial")
+        return
+
+    # Special case: "inputs" command (Bare Board Input Test)
+    if arg.lower() == "inputs":
+        print("\n" + "="*60)
+        print("Launching Input Tester...")
+        print("="*60)
+        print("Disconnect sensor wires.")
+        print("Default should be 1 (HIGH). Connect Pin to GND to see 0 (LOW).")
+        print("Press Ctrl+C to exit.")
+        
+        # Get port from env or default
+        port = os.environ.get('COM_MEGA2560', 'COM3')
+        
+        try:
+            ser = serial.Serial(port, 115200, timeout=1)
+            time.sleep(2) # Wait for reset
+            while True:
+                if ser.in_waiting:
+                    line = ser.readline().decode('utf-8', errors='replace').strip()
+                    if line:
+                        print(line)
+        except KeyboardInterrupt:
+            print("\nExiting...")
+        except Exception as e:
+            print(f"Serial Error: {e}")
         return
 
     # Launch plotter
