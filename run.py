@@ -113,6 +113,9 @@ def main():
     # Special case: "inputs" command (Input Debug)
     elif arg.lower() == "inputs":
         source_file = code_dir / "test_inputs.cpp"
+    # Special case: "analog" command (Analog Debug)
+    elif arg.lower() == "analog":
+        source_file = code_dir / "test_analog.cpp"
     else:
         # Parse n-m format
         if '-' not in arg:
@@ -264,6 +267,33 @@ def main():
         print("="*60)
         print("Disconnect sensor wires.")
         print("Default should be 1 (HIGH). Connect Pin to GND to see 0 (LOW).")
+        print("Press Ctrl+C to exit.")
+        
+        # Get port from env or default
+        port = os.environ.get('COM_MEGA2560', 'COM3')
+        
+        try:
+            ser = serial.Serial(port, 115200, timeout=1)
+            time.sleep(2) # Wait for reset
+            while True:
+                if ser.in_waiting:
+                    line = ser.readline().decode('utf-8', errors='replace').strip()
+                    if line:
+                        print(line)
+        except KeyboardInterrupt:
+            print("\nExiting...")
+        except Exception as e:
+            print(f"Serial Error: {e}")
+        return
+
+    # Special case: "analog" command (Analog Voltage Test)
+    if arg.lower() == "analog":
+        print("\n" + "="*60)
+        print("Launching Analog Scope...")
+        print("="*60)
+        print("!!! IMPORTANT !!!")
+        print("MOVE Encoder Wires to A0 and A1 for this test.")
+        print("You should see values swing between 0 and 1023 as you turn.")
         print("Press Ctrl+C to exit.")
         
         # Get port from env or default
