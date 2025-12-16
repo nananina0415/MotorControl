@@ -85,6 +85,8 @@ def main():
         print("       python run.py stop")
         print("       python run.py kp    (Kp Tuning Automation)")
         print("       python run.py kd    (Kd Tuning Automation)")
+        print("       python run.py test  (Encoder Debug)")
+        print("       python run.py inputs (Input Debug)")
         print("Example: python run.py 1-1")
         sys.exit(1)
 
@@ -108,6 +110,9 @@ def main():
     # Special case: "test" command (Encoder Debug)
     elif arg.lower() == "test":
         source_file = code_dir / "test_encoder.cpp"
+    # Special case: "inputs" command (Input Debug)
+    elif arg.lower() == "inputs":
+        source_file = code_dir / "test_inputs.cpp"
     else:
         # Parse n-m format
         if '-' not in arg:
