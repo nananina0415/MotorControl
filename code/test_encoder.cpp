@@ -16,28 +16,34 @@ void setup() {
   Serial.println("--- ENCODER DEBUG MODE ---");
   Serial.print("Checking Encoder on Pins: ");
   Serial.print(PIN_ENC_A);
-  Serial.print(" and ");
-  Serial.println(PIN_ENC_B);
   Serial.println("Please manually rotate the motor shaft.");
+  
+  // Explicitly ensure Pullups are active (just in case)
+  pinMode(PIN_ENC_A, INPUT_PULLUP);
+  pinMode(PIN_ENC_B, INPUT_PULLUP);
 }
 
 long oldPosition  = -999;
 
 void loop() {
+  // 1. Library Count Check
   long newPosition = myEncoder.read();
-  
-  // Print only on change to avoid flooding
   if (newPosition != oldPosition) {
     oldPosition = newPosition;
     Serial.print("Count: ");
     Serial.println(newPosition);
   }
   
-  // Heartbeat every 1s to show board is alive
-  static unsigned long lastHeartbeat = 0;
-  if (millis() - lastHeartbeat > 1000) {
-    lastHeartbeat = millis();
-    // Optional: Blink LED or minimal output
-    // Serial.println("."); 
+  // 2. Raw Pin State Monitor (Polling every 50ms)
+  // This helps see if the pins are stuck HIGH or LOW even if count doesn't change
+  static unsigned long lastCheck = 0;
+  if (millis() - lastCheck > 100) {
+    lastCheck = millis();
+    int a = digitalRead(PIN_ENC_A);
+    int b = digitalRead(PIN_ENC_B);
+    Serial.print("[Raw State] A: ");
+    Serial.print(a);
+    Serial.print(" | B: ");
+    Serial.println(b);
   }
 }
