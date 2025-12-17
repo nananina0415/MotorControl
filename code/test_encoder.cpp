@@ -3,8 +3,8 @@
 
 // Pin definition (matches p2-1.cpp and kp.cpp)
 // Arduino Mega 2560 Interrupt Pins: 2, 3, 18, 19, 20, 21
-const int PIN_ENC_A = 20;
-const int PIN_ENC_B = 21;
+const int PIN_ENC_A = 3;
+const int PIN_ENC_B = 4;
 
 Encoder myEncoder(PIN_ENC_A, PIN_ENC_B);
 
