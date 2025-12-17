@@ -11,10 +11,11 @@ const int ENA_PIN = 6;
 const int IN1_PIN = 7;
 const int IN2_PIN = 8;
 
-// Custom encoder on pin 3
-const int ENCODER_PIN = 3;
+// Custom encoder on analog pin A0
+const int ENCODER_PIN = A0;  // Analog pin for threshold detection
 const int STEPS_PER_REV = 24;  // 12 slits + 12 wings
 const float DEGREES_PER_STEP = 15.0;  // 360 / 24
+const int THRESHOLD = 512;  // Analog threshold (0-1023, default: 512)
 
 long encoderCount = 0;
 int lastEncoderState = LOW;  // Track previous encoder state
@@ -28,8 +29,7 @@ void setup() {
   pinMode(IN1_PIN, OUTPUT);
   pinMode(IN2_PIN, OUTPUT);
 
-  // Setup encoder pin (threshold-based polling)
-  pinMode(ENCODER_PIN, INPUT_PULLUP);
+  // Analog pin A0 doesn't need pinMode (default is INPUT)
 
   Serial.begin(115200);
   delay(2000);
@@ -46,8 +46,10 @@ void setup() {
 }
 
 void loop() {
-  // Threshold-based encoder counting (polling method)
-  int currentEncoderState = digitalRead(ENCODER_PIN);
+  // Threshold-based encoder counting (analog polling method)
+  int analogValue = analogRead(ENCODER_PIN);  // Read analog value (0-1023)
+  int currentEncoderState = (analogValue >= THRESHOLD) ? HIGH : LOW;
+  
   if (lastEncoderState == LOW && currentEncoderState == HIGH) {
     // LOW -> HIGH transition detected (rising edge)
     encoderCount++;
