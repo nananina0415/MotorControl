@@ -16,12 +16,8 @@ const int ENCODER_PIN = 3;
 const int STEPS_PER_REV = 24;  // 12 slits + 12 wings
 const float DEGREES_PER_STEP = 15.0;  // 360 / 24
 
-volatile long encoderCount = 0;
-
-// Interrupt Service Routine for encoder
-void encoderISR() {
-  encoderCount++;
-}
+long encoderCount = 0;
+int lastEncoderState = LOW;  // Track previous encoder state
 
 unsigned long prevTime = 0;
 float lastAngle = 0;
@@ -32,9 +28,8 @@ void setup() {
   pinMode(IN1_PIN, OUTPUT);
   pinMode(IN2_PIN, OUTPUT);
 
-  // Setup encoder pin with interrupt
+  // Setup encoder pin (threshold-based polling)
   pinMode(ENCODER_PIN, INPUT_PULLUP);
-  attachInterrupt(digitalPinToInterrupt(ENCODER_PIN), encoderISR, RISING);
 
   Serial.begin(115200);
   delay(2000);
@@ -51,6 +46,14 @@ void setup() {
 }
 
 void loop() {
+  // Threshold-based encoder counting (polling method)
+  int currentEncoderState = digitalRead(ENCODER_PIN);
+  if (lastEncoderState == LOW && currentEncoderState == HIGH) {
+    // LOW -> HIGH transition detected (rising edge)
+    encoderCount++;
+  }
+  lastEncoderState = currentEncoderState;
+
   unsigned long currentTime = millis();
 
   if (currentTime - prevTime >= 50) {  // 50ms interval for stable measurements
@@ -58,10 +61,7 @@ void loop() {
     prevTime = currentTime;
 
     // Read encoder count
-    long count;
-    noInterrupts();
-    count = encoderCount;
-    interrupts();
+    long count = encoderCount;
 
     // Calculate current angle
     float rawAngle = (count % STEPS_PER_REV) * DEGREES_PER_STEP;
