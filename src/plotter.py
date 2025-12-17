@@ -247,15 +247,20 @@ def update_plot(frame):
 
             # Parse data format: "Data:Duty,Time,Velocity"
             elif raw_data.startswith("Data:"):
+                print(f"[DEBUG] Raw data received: {raw_data}")  # DEBUG
                 values = raw_data.split(":")[1].split(",")
+                print(f"[DEBUG] Parsed values: {values}, len={len(values)}")  # DEBUG
                 if len(values) == 3:
                     duty = int(values[0])
                     time_val = float(values[1])
                     velocity = float(values[2])
+                    
+                    print(f"[DEBUG] Parsed: duty={duty}, time={time_val}, vel={velocity}")  # DEBUG
 
                     time_data.append(time_val)
                     velocity_data.append(velocity)
                     duty_data.append(duty * 10)  # Scale for visibility
+                    print(f"[DEBUG] Data appended. Total points: {len(time_data)}")  # DEBUG
 
             # Parse tau format: "Tau:Duty,Time,TauValue"
             elif raw_data.startswith("Tau:"):
